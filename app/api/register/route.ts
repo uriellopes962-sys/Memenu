@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sql, ensureSchema } from "@/lib/db";
+import { getSupabase } from "@/lib/supabase";
 import { hashPassword, createSessionToken, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -15,21 +15,33 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await ensureSchema();
+    const { data: existing, error: lookupError } = await getSupabase()
+      .from("users")
+      .select("id")
+      .eq("username", username)
+      .maybeSingle();
 
-    const existing = await sql`SELECT id FROM users WHERE username = ${username}`;
-    if (existing.rowCount && existing.rowCount > 0) {
+    if (lookupError) {
+      console.error("register lookup failed:", lookupError);
+      return NextResponse.json({ error: "No se pudo crear la cuenta. Intenta de nuevo." }, { status: 500 });
+    }
+    if (existing) {
       return NextResponse.json({ error: "Ese nombre de usuario ya existe." }, { status: 409 });
     }
 
-    const hash = await hashPassword(password);
-    const result = await sql`
-      INSERT INTO users (username, password_hash) VALUES (${username}, ${hash})
-      RETURNING id, username
-    `;
-    const user = result.rows[0];
-    const token = await createSessionToken(user.id, user.username);
+    const password_hash = await hashPassword(password);
+    const { data: user, error: insertError } = await getSupabase()
+      .from("users")
+      .insert({ username, password_hash })
+      .select("id, username")
+      .single();
 
+    if (insertError || !user) {
+      console.error("register insert failed:", insertError);
+      return NextResponse.json({ error: "No se pudo crear la cuenta. Intenta de nuevo." }, { status: 500 });
+    }
+
+    const token = await createSessionToken(user.id, user.username);
     const res = NextResponse.json({ ok: true, username: user.username });
     res.cookies.set(SESSION_COOKIE, token, {
       httpOnly: true,

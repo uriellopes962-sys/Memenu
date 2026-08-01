@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sql, ensureSchema } from "@/lib/db";
+import { getSupabase } from "@/lib/supabase";
 import { getSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -8,14 +8,23 @@ export async function GET() {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "No autenticado." }, { status: 401 });
 
-  await ensureSchema();
-  const result = await sql`
-    SELECT id, data, saved_at FROM weeks
-    WHERE user_id = ${session.userId}
-    ORDER BY saved_at DESC
-    LIMIT 20
-  `;
-  return NextResponse.json({ weeks: result.rows });
+  try {
+    const { data, error } = await getSupabase()
+      .from("weeks")
+      .select("id, data, saved_at")
+      .eq("user_id", session.userId)
+      .order("saved_at", { ascending: false })
+      .limit(20);
+
+    if (error) {
+      console.error("list plans failed:", error);
+      return NextResponse.json({ error: "No se pudieron cargar tus semanas." }, { status: 500 });
+    }
+    return NextResponse.json({ weeks: data });
+  } catch (e) {
+    console.error("list plans failed:", e);
+    return NextResponse.json({ error: "No se pudieron cargar tus semanas." }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -26,12 +35,17 @@ export async function POST(req: NextRequest) {
     const { weekPlans } = await req.json();
     if (!weekPlans) return NextResponse.json({ error: "Falta el menú." }, { status: 400 });
 
-    await ensureSchema();
-    const result = await sql`
-      INSERT INTO weeks (user_id, data) VALUES (${session.userId}, ${JSON.stringify(weekPlans)})
-      RETURNING id, data, saved_at
-    `;
-    return NextResponse.json({ ok: true, week: result.rows[0] });
+    const { data, error } = await getSupabase()
+      .from("weeks")
+      .insert({ user_id: session.userId, data: weekPlans })
+      .select("id, data, saved_at")
+      .single();
+
+    if (error) {
+      console.error("save plan failed:", error);
+      return NextResponse.json({ error: "No se pudo guardar." }, { status: 500 });
+    }
+    return NextResponse.json({ ok: true, week: data });
   } catch (e) {
     console.error("save plan failed:", e);
     return NextResponse.json({ error: "No se pudo guardar." }, { status: 500 });
@@ -45,7 +59,20 @@ export async function DELETE(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id");
   if (!id) return NextResponse.json({ error: "Falta el id." }, { status: 400 });
 
-  await ensureSchema();
-  await sql`DELETE FROM weeks WHERE id = ${id} AND user_id = ${session.userId}`;
-  return NextResponse.json({ ok: true });
+  try {
+    const { error } = await getSupabase()
+      .from("weeks")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", session.userId);
+
+    if (error) {
+      console.error("delete plan failed:", error);
+      return NextResponse.json({ error: "No se pudo borrar." }, { status: 500 });
+    }
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    console.error("delete plan failed:", e);
+    return NextResponse.json({ error: "No se pudo borrar." }, { status: 500 });
+  }
 }

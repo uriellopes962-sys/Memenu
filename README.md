@@ -5,17 +5,18 @@ cuentas de usuario y menús guardados por perfil.
 
 ## Stack
 - Next.js 14 (App Router)
-- Postgres (vía la integración de Storage de Vercel) para usuarios y menús guardados
+- Supabase (Postgres) para usuarios y menús guardados, accedido por el
+  servidor con la service_role key (bypassa RLS; nunca se expone al cliente)
 - Autenticación propia: contraseñas con bcrypt, sesión firmada con JWT en cookie httpOnly
 
-## Deploy en Vercel
+## Configuración
 
-1. Importa este repo en Vercel.
-2. Ve a **Storage → Create Database → Postgres** y conéctala al proyecto
-   (esto añade automáticamente la variable `POSTGRES_URL`).
-3. En **Settings → Environment Variables**, añade `SESSION_SECRET` con
-   cualquier cadena aleatoria larga.
-4. Redeploy. Las tablas `users` y `weeks` se crean solas en el primer request.
+1. En Supabase → SQL Editor, corre una vez el contenido de `supabase-schema.sql`.
+2. En Vercel → Settings → Environment Variables, agrega:
+   - `PUBLIC_SUPABASE_URL` (ya la tienes)
+   - `SUPABASE_SERVICE_ROLE_KEY` (Supabase → Project Settings → API Keys → service_role)
+   - `SESSION_SECRET` (cualquier cadena larga y aleatoria)
+3. Redeploy.
 
 ## Desarrollo local
 
