@@ -1,4 +1,5 @@
 import "./globals.css";
+import { PlanProvider } from "@/app/context/PlanContext";
 
 export const metadata = {
   title: "Plan Antiinflamatorio",
@@ -16,7 +17,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <PlanProvider>{children}</PlanProvider>
+      </body>
     </html>
   );
 }
