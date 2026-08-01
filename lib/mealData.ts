@@ -796,3 +796,19 @@ export function iconForIngredient(name: string): string {
   }
   return "🛒";
 }
+
+const TIME_BY_CATEGORY: Record<CategoryKey, string> = {
+  breakfast: "10 min",
+  lunch: "25 min",
+  dinner: "25 min",
+  snack: "5 min"
+};
+
+export function estimatedTime(category: CategoryKey): string {
+  return TIME_BY_CATEGORY[category];
+}
+
+export function recipeDescription(meal: Meal, category: CategoryKey, catLabel: string): string {
+  const focus = meal.tags.join(" + ");
+  return `Receta antiinflamatoria de ${catLabel.toLowerCase()}, con enfoque en ${focus}.`;
+}

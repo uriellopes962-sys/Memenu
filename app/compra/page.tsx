@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePlan } from "@/app/context/PlanContext";
 import { DAY_NAMES } from "@/lib/mealData";
+import IconCircle from "@/app/components/IconCircle";
 
 const CATEGORY_ORDER = [
   "Carnes, pescado y huevo",
@@ -63,7 +64,7 @@ export default function CompraPage() {
                   className={"shop-item" + (idx === group.items.length - 1 ? " last" : "")}
                   key={item.name}
                 >
-                  <div className="shop-item-icon">{item.icon}</div>
+                  <IconCircle icon={item.icon} bg="var(--green-tint)" size="sm" />
                   <div className="shop-item-name">{item.name}</div>
                   <div className="shop-item-amount">{item.amount}</div>
                   <button

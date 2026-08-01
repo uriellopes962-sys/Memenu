@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePlan } from "@/app/context/PlanContext";
 import { CATS, DAY_LETTERS, DAY_NAMES, TARGET_MAX, TARGET_MIN, totalKcal, totalMacro } from "@/lib/mealData";
+import MacroStat from "@/app/components/MacroStat";
+import IconCircle from "@/app/components/IconCircle";
 
 export default function HomePage() {
   const {
@@ -85,7 +87,7 @@ export default function HomePage() {
           const item = menu[cat.key];
           return (
             <div className="meal-row" key={cat.key}>
-              <div className="meal-icon" style={{ background: `var(--${cat.chip})` }}>{cat.icon}</div>
+              <IconCircle icon={cat.icon} bg={`var(--${cat.chip})`} size="lg" />
               <div className="meal-body">
                 <div className="meal-cat">{cat.label}</div>
                 <div className="meal-name">{item.name}</div>
@@ -105,21 +107,9 @@ export default function HomePage() {
 
       {menu && (
         <div className="macro-row-cards">
-          <div className="macro-card">
-            <div className="macro-icon" style={{ background: "var(--chip-pink)" }}>🥩</div>
-            <div className="macro-val">{totalMacro(menu, "p")}g</div>
-            <div className="macro-label">Proteína</div>
-          </div>
-          <div className="macro-card">
-            <div className="macro-icon" style={{ background: "var(--chip-orange)" }}>🌾</div>
-            <div className="macro-val">{totalMacro(menu, "c")}g</div>
-            <div className="macro-label">Carbohidratos</div>
-          </div>
-          <div className="macro-card">
-            <div className="macro-icon" style={{ background: "var(--chip-teal)" }}>🥑</div>
-            <div className="macro-val">{totalMacro(menu, "g")}g</div>
-            <div className="macro-label">Grasas</div>
-          </div>
+          <MacroStat icon="🥩" bg="var(--chip-pink)" value={`${totalMacro(menu, "p")}g`} label="Proteína" />
+          <MacroStat icon="🌾" bg="var(--chip-orange)" value={`${totalMacro(menu, "c")}g`} label="Carbohidratos" />
+          <MacroStat icon="🥑" bg="var(--chip-teal)" value={`${totalMacro(menu, "g")}g`} label="Grasas" />
         </div>
       )}
 
