@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   CATS,
   DAY_LETTERS,
@@ -36,8 +35,7 @@ function getWeekDates() {
   return { dates, todayIdx };
 }
 
-export default function PlanApp({ username }: { username: string }) {
-  const router = useRouter();
+export default function PlanApp() {
   const { dates: weekDates, todayIdx } = useMemo(getWeekDates, []);
 
   const [weekPlans, setWeekPlans] = useState<(WeekMenu | null)[]>(() => {
@@ -109,7 +107,7 @@ export default function PlanApp({ username }: { username: string }) {
         showToast(data.error || "No se pudo guardar");
         return;
       }
-      showToast("Semana guardada en tu cuenta");
+      showToast("Semana guardada");
       loadSavedList();
     } catch {
       showToast("No se pudo guardar (revisa tu conexión)");
@@ -125,13 +123,13 @@ export default function PlanApp({ username }: { username: string }) {
       const res = await fetch("/api/plans");
       const data = await res.json();
       if (!res.ok) {
-        setSavedError(data.error || "No se pudieron cargar tus semanas.");
+        setSavedError(data.error || "No se pudieron cargar los menús guardados.");
         setSavedWeeks([]);
         return;
       }
       setSavedWeeks(data.weeks);
     } catch {
-      setSavedError("No se pudieron cargar tus semanas.");
+      setSavedError("No se pudieron cargar los menús guardados.");
       setSavedWeeks([]);
     } finally {
       setSavedLoading(false);
@@ -154,12 +152,6 @@ export default function PlanApp({ username }: { username: string }) {
     }
   }
 
-  async function logout() {
-    await fetch("/api/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
-  }
-
   const shoppingList = useMemo(() => {
     if (!menu) return [];
     const set = new Set<string>();
@@ -171,7 +163,7 @@ export default function PlanApp({ username }: { username: string }) {
     <div className="app">
       <div className="topbar">
         <div>
-          <div className="greet-sub">{greeting}, {username}</div>
+          <div className="greet-sub">{greeting}</div>
           <div className="greet-name">Plan antiinflamatorio</div>
         </div>
         <div className="icon-btn-row">
@@ -187,7 +179,6 @@ export default function PlanApp({ username }: { username: string }) {
           >
             🔖
           </button>
-          <button className="icon-btn" title="Cerrar sesión" onClick={logout}>⏻</button>
         </div>
       </div>
 
@@ -310,7 +301,7 @@ export default function PlanApp({ username }: { username: string }) {
 
       {showSaved && (
         <div className="panel-sheet">
-          <h2>Semanas guardadas</h2>
+          <h2>Menús guardados</h2>
           <button className="btn-save-week" onClick={saveWeek} disabled={savingNow}>
             {savingNow ? "Guardando…" : "Guardar la semana actual"}
           </button>

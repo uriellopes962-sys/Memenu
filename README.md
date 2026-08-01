@@ -1,13 +1,12 @@
 # Plan Antiinflamatorio
 
-App de menús saludables para un déficit calórico antiinflamatorio, con
-cuentas de usuario y menús guardados por perfil.
+App de menús saludables para un déficit calórico antiinflamatorio.
+Sin cuentas de usuario: los menús guardados son compartidos por quien use la app.
 
 ## Stack
 - Next.js 14 (App Router)
-- Supabase (Postgres) para usuarios y menús guardados, accedido por el
-  servidor con la service_role key (bypassa RLS; nunca se expone al cliente)
-- Autenticación propia: contraseñas con bcrypt, sesión firmada con JWT en cookie httpOnly
+- Supabase (Postgres) solo para guardar/recuperar semanas de menús,
+  accedido por el servidor con la service_role key
 
 ## Configuración
 
@@ -15,7 +14,6 @@ cuentas de usuario y menús guardados por perfil.
 2. En Vercel → Settings → Environment Variables, agrega:
    - `PUBLIC_SUPABASE_URL` (ya la tienes)
    - `SUPABASE_SERVICE_ROLE_KEY` (Supabase → Project Settings → API Keys → service_role)
-   - `SESSION_SECRET` (cualquier cadena larga y aleatoria)
 3. Redeploy.
 
 ## Desarrollo local
