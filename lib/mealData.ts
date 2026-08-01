@@ -712,3 +712,87 @@ export function findMealById(id: string): { meal: Meal; category: CategoryKey } 
   }
   return null;
 }
+
+const SHOP_CATEGORY_RULES: { label: string; keywords: string[] }[] = [
+  { label: "Carnes, pescado y huevo", keywords: ["salmón", "pollo", "pavo", "atún", "merluza", "huevo", "tofu"] },
+  { label: "Lácteos", keywords: ["leche", "yogur", "queso", "crema de leche", "mantequilla"] },
+  {
+    label: "Frutas y verduras",
+    keywords: [
+      "arándano", "aguacate", "espinaca", "piña", "tomate", "cebolla", "plátano", "mango",
+      "brócoli", "batata", "remolacha", "kale", "calabacín", "pimiento", "calabaza", "puerro",
+      "coliflor", "berenjena", "zanahoria", "pepino", "manzana", "granada", "espárrago",
+      "verduras", "ajo", "limón", "edamame"
+    ]
+  },
+  { label: "Granos y legumbres", keywords: ["avena", "pan integral", "arroz", "quinoa", "garbanzo", "lenteja"] },
+  {
+    label: "Grasas, especias y otros",
+    keywords: [
+      "aceite", "miel", "cúrcuma", "jengibre", "canela", "chía", "linaza", "nueces", "almendras",
+      "semillas", "sésamo", "tahini", "salsa de soja", "caldo", "curry", "miso", "algas",
+      "chocolate", "agua de coco", "leche de coco", "vinagre", "comino"
+    ]
+  }
+];
+
+export function categorizeIngredient(name: string): string {
+  const n = name.toLowerCase();
+  for (const rule of SHOP_CATEGORY_RULES) {
+    if (rule.keywords.some((k) => n.includes(k))) return rule.label;
+  }
+  return "Otros";
+}
+
+const SHOP_ICON_RULES: { icon: string; keywords: string[] }[] = [
+  { icon: "🐟", keywords: ["salmón", "atún", "merluza"] },
+  { icon: "🍗", keywords: ["pollo", "pavo"] },
+  { icon: "🥚", keywords: ["huevo"] },
+  { icon: "🧊", keywords: ["tofu", "edamame"] },
+  { icon: "🥛", keywords: ["leche"] },
+  { icon: "🥣", keywords: ["yogur"] },
+  { icon: "🧀", keywords: ["queso"] },
+  { icon: "🧈", keywords: ["mantequilla", "crema"] },
+  { icon: "🫐", keywords: ["arándano"] },
+  { icon: "🥑", keywords: ["aguacate"] },
+  { icon: "🍃", keywords: ["espinaca", "kale"] },
+  { icon: "🍍", keywords: ["piña"] },
+  { icon: "🍅", keywords: ["tomate"] },
+  { icon: "🧅", keywords: ["cebolla", "ajo"] },
+  { icon: "🍌", keywords: ["plátano"] },
+  { icon: "🥭", keywords: ["mango"] },
+  { icon: "🥦", keywords: ["brócoli"] },
+  { icon: "🍠", keywords: ["batata"] },
+  { icon: "🫒", keywords: ["remolacha", "aceituna"] },
+  { icon: "🥒", keywords: ["calabacín", "pepino"] },
+  { icon: "🫑", keywords: ["pimiento"] },
+  { icon: "🎃", keywords: ["calabaza"] },
+  { icon: "🥬", keywords: ["puerro", "verduras"] },
+  { icon: "🥔", keywords: ["coliflor"] },
+  { icon: "🍆", keywords: ["berenjena"] },
+  { icon: "🥕", keywords: ["zanahoria"] },
+  { icon: "🍎", keywords: ["manzana"] },
+  { icon: "🍈", keywords: ["granada"] },
+  { icon: "🍋", keywords: ["limón"] },
+  { icon: "🌾", keywords: ["avena", "pan integral", "arroz", "quinoa"] },
+  { icon: "🫘", keywords: ["garbanzo", "lenteja"] },
+  { icon: "🫒", keywords: ["aceite de oliva"] },
+  { icon: "🧴", keywords: ["aceite"] },
+  { icon: "🍯", keywords: ["miel"] },
+  { icon: "🟡", keywords: ["cúrcuma"] },
+  { icon: "🫚", keywords: ["jengibre"] },
+  { icon: "🌰", keywords: ["nueces", "almendras", "semillas"] },
+  { icon: "🥜", keywords: ["sésamo", "tahini"] },
+  { icon: "🥫", keywords: ["salsa de soja", "caldo", "curry", "miso"] },
+  { icon: "🌊", keywords: ["algas"] },
+  { icon: "🍫", keywords: ["chocolate"] },
+  { icon: "🥥", keywords: ["coco"] }
+];
+
+export function iconForIngredient(name: string): string {
+  const n = name.toLowerCase();
+  for (const rule of SHOP_ICON_RULES) {
+    if (rule.keywords.some((k) => n.includes(k))) return rule.icon;
+  }
+  return "🛒";
+}

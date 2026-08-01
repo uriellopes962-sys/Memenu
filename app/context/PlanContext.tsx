@@ -5,9 +5,18 @@ import {
   CATS,
   generateMenu,
   swapMealIn,
+  categorizeIngredient,
+  iconForIngredient,
   type CategoryKey,
   type WeekMenu
 } from "@/lib/mealData";
+
+export type ShoppingItem = {
+  name: string;
+  amount: string;
+  category: string;
+  icon: string;
+};
 
 export type SavedWeek = {
   id: number;
@@ -38,7 +47,7 @@ type PlanContextValue = {
   generateSelectedDay: () => void;
   generateWeek: () => void;
   swapMeal: (catKey: CategoryKey) => void;
-  shoppingList: string[];
+  shoppingList: ShoppingItem[];
   savedWeeks: SavedWeek[] | null;
   savedLoading: boolean;
   savedError: string;
@@ -168,11 +177,21 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const shoppingList = useMemo(() => {
+  const shoppingList = useMemo<ShoppingItem[]>(() => {
     if (!menu) return [];
-    const set = new Set<string>();
-    CATS.forEach((c) => menu[c.key].ingredients.forEach((i) => set.add(i.name)));
-    return [...set].sort();
+    const map = new Map<string, ShoppingItem>();
+    CATS.forEach((c) =>
+      menu[c.key].ingredients.forEach((i) => {
+        if (map.has(i.name)) return;
+        map.set(i.name, {
+          name: i.name,
+          amount: i.amount,
+          category: categorizeIngredient(i.name),
+          icon: iconForIngredient(i.name)
+        });
+      })
+    );
+    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
   }, [menu]);
 
   const value: PlanContextValue = {
