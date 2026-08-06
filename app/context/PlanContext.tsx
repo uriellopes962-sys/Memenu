@@ -24,6 +24,12 @@ export type SavedWeek = {
   saved_at: string;
 };
 
+export type Favorite = {
+  id: number;
+  meal_id: string;
+  saved_at: string;
+};
+
 function getWeekDates() {
   const today = new Date();
   const todayIdx = (today.getDay() + 6) % 7;
@@ -56,6 +62,12 @@ type PlanContextValue = {
   saveWeek: () => void;
   loadWeek: (w: SavedWeek) => void;
   deleteWeek: (id: number) => void;
+  favorites: Favorite[] | null;
+  favoritesLoading: boolean;
+  loadFavorites: () => void;
+  isFavorite: (mealId: string) => boolean;
+  toggleFavorite: (mealId: string) => void;
+  removeFavorite: (mealId: string) => void;
   toast: string;
   showToast: (msg: string) => void;
   greeting: string;
@@ -76,6 +88,8 @@ export function PlanProvider({ children }: { children: ReactNode }) {
   const [savedLoading, setSavedLoading] = useState(false);
   const [savedError, setSavedError] = useState("");
   const [savingNow, setSavingNow] = useState(false);
+  const [favorites, setFavorites] = useState<Favorite[] | null>(null);
+  const [favoritesLoading, setFavoritesLoading] = useState(false);
   const [toast, setToast] = useState("");
   const [greeting, setGreeting] = useState("Hola");
 
@@ -177,8 +191,62 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const shoppingList = useMemo<ShoppingItem[]>(() => {
-    if (!menu) return [];
+  async function loadFavorites() {
+    setFavoritesLoading(true);
+    try {
+      const res = await fetch("/api/favorites");
+      const data = await res.json();
+      if (!res.ok) {
+        setFavorites([]);
+        return;
+      }
+      setFavorites(data.favorites);
+    } catch {
+      setFavorites([]);
+    } finally {
+      setFavoritesLoading(false);
+    }
+  }
+
+  function isFavorite(mealId: string) {
+    return !!favorites?.some((f) => f.meal_id === mealId);
+  }
+
+  async function toggleFavorite(mealId: string) {
+    const already = isFavorite(mealId);
+    if (already) {
+      await removeFavorite(mealId);
+      return;
+    }
+    try {
+      const res = await fetch("/api/favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mealId })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showToast(data.error || "No se pudo guardar la receta");
+        return;
+      }
+      setFavorites((prev) => [data.favorite, ...(prev ?? [])]);
+      showToast("Receta guardada en favoritos");
+    } catch {
+      showToast("No se pudo guardar la receta");
+    }
+  }
+
+  async function removeFavorite(mealId: string) {
+    try {
+      await fetch(`/api/favorites?mealId=${encodeURIComponent(mealId)}`, { method: "DELETE" });
+      setFavorites((prev) => (prev ? prev.filter((f) => f.meal_id !== mealId) : prev));
+      showToast("Receta quitada de favoritos");
+    } catch {
+      showToast("No se pudo quitar de favoritos");
+    }
+  }
+
+  const shoppingList = useMemo<ShoppingItem[]>(() => {    if (!menu) return [];
     const map = new Map<string, ShoppingItem>();
     CATS.forEach((c) =>
       menu[c.key].ingredients.forEach((i) => {
@@ -212,6 +280,12 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     saveWeek,
     loadWeek,
     deleteWeek,
+    favorites,
+    favoritesLoading,
+    loadFavorites,
+    isFavorite,
+    toggleFavorite,
+    removeFavorite,
     toast,
     showToast,
     greeting

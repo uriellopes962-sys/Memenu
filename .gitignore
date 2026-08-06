@@ -2,3 +2,9 @@ node_modules
 .next
 .env
 .env.local
+public/sw.js
+public/workbox-*.js
+public/worker-*.js
+public/fallback-*.js
+public/sw.js.map
+public/workbox-*.js.map

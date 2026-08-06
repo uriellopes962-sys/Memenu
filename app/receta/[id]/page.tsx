@@ -1,22 +1,29 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { findMealById, CATS, estimatedTime, recipeDescription, iconForIngredient } from "@/lib/mealData";
 import MacroStat from "@/app/components/MacroStat";
 import IconCircle from "@/app/components/IconCircle";
 import SegmentedTabs from "@/app/components/SegmentedTabs";
+import { usePlan } from "@/app/context/PlanContext";
 
 type Tab = "ingredientes" | "instrucciones";
 
 export default function RecetaPage() {
   const params = useParams<{ id: string }>();
   const found = findMealById(params.id);
+  const { favorites, isFavorite, toggleFavorite, loadFavorites } = usePlan();
 
   const [tab, setTab] = useState<Tab>("ingredientes");
   // Por ingrediente: null = original, o el nombre de la alternativa elegida.
   const [selections, setSelections] = useState<Record<string, string | null>>({});
+
+  useEffect(() => {
+    if (favorites === null) loadFavorites();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const currentTotal = useMemo(() => {
     if (!found) return 0;
@@ -56,6 +63,13 @@ export default function RecetaPage() {
           <div className="greet-name">{meal.name}</div>
         </div>
         <div className="icon-btn-row">
+          <button
+            className={"icon-btn" + (isFavorite(meal.id) ? " favorited" : "")}
+            title={isFavorite(meal.id) ? "Quitar de favoritos" : "Guardar receta"}
+            onClick={() => toggleFavorite(meal.id)}
+          >
+            {isFavorite(meal.id) ? "❤️" : "🤍"}
+          </button>
           <Link className="icon-btn" title="Volver" href="/">←</Link>
         </div>
       </div>

@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { usePlan } from "@/app/context/PlanContext";
 import { CATS, DAY_LETTERS, DAY_NAMES, TARGET_MAX, TARGET_MIN, totalKcal, totalMacro } from "@/lib/mealData";
 import MacroStat from "@/app/components/MacroStat";
 import IconCircle from "@/app/components/IconCircle";
 
 export default function HomePage() {
+  const router = useRouter();
   const {
     weekDates,
     weekPlans,
@@ -86,7 +88,12 @@ export default function HomePage() {
         {menu && CATS.map((cat) => {
           const item = menu[cat.key];
           return (
-            <div className="meal-row" key={cat.key}>
+            <div
+              className="meal-row"
+              key={cat.key}
+              onClick={() => router.push(`/receta/${item.id}`)}
+              style={{ cursor: "pointer" }}
+            >
               <IconCircle icon={cat.icon} bg={`var(--${cat.chip})`} size="lg" />
               <div className="meal-body">
                 <div className="meal-cat">{cat.label}</div>
@@ -95,11 +102,18 @@ export default function HomePage() {
                 <div className="meal-tags">
                   {item.tags.map((t) => <span className="meal-tag" key={t}>{t}</span>)}
                 </div>
-                <Link className="meal-ing-toggle" href={`/receta/${item.id}`}>
-                  Ver receta completa →
-                </Link>
+                <div className="meal-ing-toggle">Ver receta completa →</div>
               </div>
-              <button className="meal-swap" title="Cambiar" onClick={() => swapMeal(cat.key)}>↻</button>
+              <button
+                className="meal-swap"
+                title="Cambiar"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  swapMeal(cat.key);
+                }}
+              >
+                ↻
+              </button>
             </div>
           );
         })}

@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { usePlan } from "@/app/context/PlanContext";
 import { useRouter } from "next/navigation";
+import { findMealById } from "@/lib/mealData";
+import IconCircle from "@/app/components/IconCircle";
 
 export default function GuardadosPage() {
   const router = useRouter();
@@ -16,11 +18,16 @@ export default function GuardadosPage() {
     saveWeek,
     loadWeek,
     deleteWeek,
+    favorites,
+    favoritesLoading,
+    loadFavorites,
+    removeFavorite,
     toast
   } = usePlan();
 
   useEffect(() => {
     loadSavedList();
+    loadFavorites();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -34,13 +41,42 @@ export default function GuardadosPage() {
       <div className="topbar">
         <div>
           <div className="greet-sub">Guardados</div>
-          <div className="greet-name">Menús guardados</div>
+          <div className="greet-name">Menús y recetas</div>
         </div>
         <div className="icon-btn-row">
           <Link className="icon-btn" title="Volver" href="/">←</Link>
         </div>
       </div>
 
+      <div className="section-title">Recetas favoritas</div>
+      <div className="panel-sheet">
+        {favoritesLoading && <p className="empty">Cargando…</p>}
+        {!favoritesLoading && favorites && favorites.length === 0 && (
+          <p className="empty">Todavía no has guardado ninguna receta. Toca el corazón dentro de una receta para guardarla aquí.</p>
+        )}
+        {!favoritesLoading && favorites && favorites.map((fav) => {
+          const found = findMealById(fav.meal_id);
+          if (!found) return null;
+          return (
+            <div className="saved-item" key={fav.id}>
+              <Link href={`/receta/${fav.meal_id}`} style={{ display: "flex", alignItems: "center", gap: "10px", flex: 1, minWidth: 0 }}>
+                <IconCircle icon="🍽️" bg="var(--green-tint)" size="sm" />
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: "13px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {found.meal.name}
+                  </div>
+                  <div className="saved-meta">{found.meal.kcal} kcal</div>
+                </div>
+              </Link>
+              <div className="saved-actions">
+                <button className="link-btn danger" onClick={() => removeFavorite(fav.meal_id)}>Quitar</button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="section-title">Semanas guardadas</div>
       <div className="panel-sheet">
         <button className="btn-save-week" onClick={saveWeek} disabled={savingNow}>
           {savingNow ? "Guardando…" : "Guardar la semana actual"}
